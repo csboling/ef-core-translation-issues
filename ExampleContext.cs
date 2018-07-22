@@ -18,7 +18,8 @@ namespace Issues.OpsAfterProjection
             var library = modelBuilder.Entity<Library>();
             library
                 .HasMany(l => l.Books)
-                .WithOne(b => b.Library);
+                .WithOne(b => b.Library)
+                .HasForeignKey(b => b.LibraryId);
             library
                 .HasOne(l => l.City)
                 .WithOne(c => c.Library)
@@ -31,7 +32,8 @@ namespace Issues.OpsAfterProjection
             var book = modelBuilder.Entity<Book>();
             book
                 .HasOne(b => b.Library)
-                .WithMany(l => l.Books);
+                .WithMany(l => l.Books)
+                .HasForeignKey(b => b.LibraryId);
             base.OnModelCreating(modelBuilder);
         }
     }
