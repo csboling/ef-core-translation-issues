@@ -5,6 +5,7 @@ namespace Issues.OpsAfterProjection
 
     using Xunit;
 
+    // https://github.com/aspnet/EntityFrameworkCore/issues/12728
     public class TestTranslationFailures : IDisposable
     {
         public TestTranslationFailures()
@@ -58,6 +59,7 @@ namespace Issues.OpsAfterProjection
                         }),
                 });
 
+        #region SuccessfulProjections
         [Fact]
         public void Where_AfterProjection_OneToOneNavigation()
         {
@@ -71,10 +73,13 @@ namespace Issues.OpsAfterProjection
         public void WhereAny_BeforeProjection()
         {
             var dbSet = this.DbContext.Set<Library>();
-            var query = this.Project(dbSet.Where(l => l.Books.Any(b => b.Title == "The Cat in the Hat")));
+            var query = this.Project(
+                dbSet.Where(l => l.Books.Any(b => b.Title == "The Cat in the Hat")));
             query.ToList();
         }
+        #endregion
 
+        #region NamedTypes
         [Fact] // translation fails
         public void WhereAny_AfterProjection()
         {
@@ -110,5 +115,85 @@ namespace Issues.OpsAfterProjection
                 .Where(l => l.Books.Any());
             query.ToList();
         }
+        #endregion
+
+        #region AnonymousTypes
+        [Fact] // translation fails
+        public void WhereAny_AnonymousTypeProjection()
+        {
+            var dbSet = this.DbContext.Set<Library>();
+            var query = dbSet
+                .Select(l => new
+                {
+                    Books = l.Books
+                        .Select(b => new
+                        {
+                            b.Title,
+                        })
+                        .ToList(),
+                })
+                .Where(l => l.Books.Any(b => b.Title == "The Cat in the Hat"));
+            query.ToList();
+        }
+
+        [Fact] // translation fails
+        public void WhereAny_AnonymousTypeProjection_WithoutComparison()
+        {
+            var dbSet = this.DbContext.Set<Library>();
+            var query = dbSet
+                .Select(l => new
+                {
+                    Books = l.Books
+                        .Select(b => new
+                        {
+                            b.Title,
+                        })
+                        .ToList(),
+                })
+                .Where(l => l.Books.Any());
+            query.ToList();
+        }
+
+        [Fact] // translation fails
+        public void WhereAny_AnonymousTypeProjectionWithoutToList()
+        {
+            var dbSet = this.DbContext.Set<Library>();
+            var query = dbSet
+                .Select(l => new
+                {
+                    Books = l.Books
+                        .Select(b => new
+                        {
+                            b.Title,
+                        }),
+                })
+                .Where(l => l.Books.Any(b => b.Title == "The Cat in the Hat"));
+            query.ToList();
+        }
+
+        [Fact]
+        public void WhereAny_AnonymousTypeProjectionWithoutToList_WithoutComparison()
+        {
+            var dbSet = this.DbContext.Set<Library>();
+            var query = dbSet
+                .Select(l => new
+                {
+                    l.Id,
+                    City = new
+                    {
+                        l.City.Id,
+                        l.City.Name,
+                    },
+                    Books = l.Books
+                        .Select(b => new
+                        {
+                            b.Id,
+                            b.Title,
+                        }),
+                })
+                .Where(l => l.Books.Any());
+            query.ToList();
+        }
+        #endregion
     }
 }
