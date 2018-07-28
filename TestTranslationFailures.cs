@@ -178,16 +178,9 @@ namespace Issues.OpsAfterProjection
             var query = dbSet
                 .Select(l => new
                 {
-                    l.Id,
-                    City = new
-                    {
-                        l.City.Id,
-                        l.City.Name,
-                    },
                     Books = l.Books
                         .Select(b => new
                         {
-                            b.Id,
                             b.Title,
                         }),
                 })
