@@ -28,6 +28,8 @@ namespace Issues.OpsAfterProjection
 
         public string Title { get; set; }
 
+        public int LibraryId { get; set; }
+
         public Library Library { get; set; }
     }
 }
